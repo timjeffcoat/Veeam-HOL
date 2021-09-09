@@ -42,16 +42,24 @@ echo "Looks like disks need partitions - creating"
 echo "start=2048, type=83" >> /minio-dir/partition_template_sfdisk
 
 sfdisk  /dev/sdb < /minio-dir/partition_template_sfdisk
+sleep 1
 mkfs.ext4 /dev/sdb1
+sleep 1
 
 sfdisk  /dev/sdc < /minio-dir/partition_template_sfdisk
+sleep 1
 mkfs.ext4 /dev/sdc1
+sleep 1
 
 sfdisk  /dev/sdd < /minio-dir/partition_template_sfdisk
+sleep 1
 mkfs.ext4 /dev/sdd1
+sleep 1
 
 sfdisk  /dev/sde < /minio-dir/partition_template_sfdisk
+sleep 1
 mkfs.ext4 /dev/sde1
+sleep 1
 
 echo "UUID=`blkid -s UUID -o value /dev/sdb1` /minio-dir/mnt/disk_sdb ext4 defaults 0 1" >> /minio-dir/fstab.append
 echo "UUID=`blkid -s UUID -o value /dev/sdc1` /minio-dir/mnt/disk_sdc ext4 defaults 0 1" >> /minio-dir/fstab.append
