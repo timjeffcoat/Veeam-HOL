@@ -1,6 +1,22 @@
 # Usage Instructions
-Follow these intructions for setting up a Veeam Test Drive on-prem object storage server.
-
+The bash script `minio-setup.sh` automates the process of building an on-prem S3-compatible object storage server.  
+It attempts to perform the following tasks:
+1. Create a linux user and directories for MinIO to use
+2. Partition and format the four data drives
+3. Add mount points for the data drives to `fstab` so that they mount after a reboot
+4. Download the MinIO (`minio`) and MinIO Admin Utiltiy (`mc`) binaries
+5. Add an alias for the MinIO server via `mc`
+6. Create a self-signed SSL certificate and private key
+7. Register MinIO as a systemd service so that it starts after a reboot
+8. Start the MinIO server
+9. Adds MinIO user accounts
+10. Adds a bucket with object lock
+  
+Before carrying out any of the above tasks, the script will perform a very rudimentary check to try and determine if the task is necessary.  
+These checks have ***not*** been thoroughly tested, but do allow for the script to be run multiple times should something fail.  
+For instance, if the MinIO server does not start (task 8), running the script again will skip tasks 1-7, and re-attempt task 8.  
+  
+#### The following steps outline the recommended deployment for creating a server and running the `minio-setup.sh` script.  
 ### Step 1) Create VM
 Create a new VM on your hypervisor of choice.  
 Required VM settings:
@@ -33,9 +49,9 @@ Install SSH Server:	`yes`
 All other options:	`default`  
 
 ### Step 3) Deploy MinIO via script.
-After the install has finished and the server has completed it's initial post-install boot:
-SSH onto the server using the 'veeam' admin user account.
-Run the following command (sudo will prompt for the 'veeam' admin user password):
-```
-curl -sS https://raw.githubusercontent.com/timjeffcoat/Veeam-Test-Drive/main/minio-setup.sh | sudo bash
-```
+After the install has finished and the server has completed it's initial post-install boot:  
+SSH onto the server using the 'veeam' admin user account.  
+Run the following command to download and execute the script:  
+`curl -sS https://raw.githubusercontent.com/timjeffcoat/Veeam-Test-Drive/main/minio-setup.sh | sudo bash`  
+  
+Sudo will prompt for the 'veeam' admin user password, after which the script task outputs will be shown as the script runs.  
