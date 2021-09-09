@@ -41,7 +41,7 @@ Ubuntu 20.04 Server ISO can be downloaded [here](https://releases.ubuntu.com/20.
 * The size of the data drives does not need to be 100 GB, and can match what resources are available.
 
 ### Step 2) Install Linux
-Boot the VM into the Ubuntu 20.04 Server ISO, and follow the install wizard.
+Boot the VM into the Ubuntu 20.04 Server ISO, and follow the install wizard.  
 Server name:		`TDTV-S3O-01`  
 Username: 		`veeam`  
 Password: 		`Veeam123456!`  
@@ -49,9 +49,9 @@ Install SSH Server:	`yes`
 All other options:	`default`  
 
 ### Step 3) Deploy MinIO via script.
-After the install has finished and the server has completed it's initial post-install boot:  
-SSH onto the server using the 'veeam' admin user account.  
-Run the following command to download and execute the script:  
+After the install has finished and the server has completed it's initial post-install boot:
+* SSH onto the server using the 'veeam' admin user account.  
+* Run the following command to download and execute the script:  
 `curl -sS https://raw.githubusercontent.com/timjeffcoat/Veeam-Test-Drive/main/minio-setup.sh | sudo bash`  
   
 Sudo will prompt for the 'veeam' admin user password, after which the script task outputs will be shown as the script runs.  
