@@ -43,8 +43,8 @@ Ubuntu 20.04 Server ISO can be downloaded [here](https://releases.ubuntu.com/20.
 ### Step 2) Install Linux
 Boot the VM into the Ubuntu 20.04 Server ISO, and follow the install wizard.  
 Server name:		`TDTV-S3O-01`  
-Username: 		<Agreed TDTV username>
-Password: 		<Agreed TDTV password> 
+Username: 		<Agreed TDTV username>  
+Password: 		<Agreed TDTV password>  
 Install SSH Server:	`yes`  
 All other options:	`default`  
 
