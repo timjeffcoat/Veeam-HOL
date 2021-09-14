@@ -43,7 +43,7 @@ Ubuntu 20.04 Server ISO can be downloaded [here](https://releases.ubuntu.com/20.
 ### Step 2) Install Linux
 Boot the VM into the Ubuntu 20.04 Server ISO, and follow the install wizard.  
 Server name:		`TDTV-S3O-01`  
-Username: 		`Enter the agreed TDTV username`  
+Username: 		`Enter the agreed TDTV admin username`  
 Password: 		`Enter the agreed TDTV password`    
 Install SSH Server:	`yes`  
 All other options:	`default`  
@@ -54,4 +54,4 @@ After the install has finished and the server has completed it's initial post-in
 * Run the following command to download and execute the script:  
 `curl -sS https://raw.githubusercontent.com/timjeffcoat/Veeam-Test-Drive/main/minio-setup.sh | sudo bash`  
   
-Sudo will prompt for the 'veeam' admin user password, after which the script task outputs will be shown as the script runs.  
+Sudo will prompt for the admin user password, after which the script task outputs will be shown as the script runs.  
