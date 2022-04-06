@@ -34,6 +34,18 @@ else
 	echo "Directories created"
 fi
 
+echo "Found these drives, which do you want to use?"
+echo fdisk -l | grep 'Disk /dev/sd'
+read disk1 disk2 disk3 disk4
+echo "Using drives: $disk1 $disk2 $disk3 $disk4. Proceed?"
+
+read carryon
+
+if [ $carryon <> 'y' ]
+then
+exit
+fi
+
 temp=$(grep -c 'sdb[0-9]' /proc/partitions)
 
 if [ ${temp} = 0 ]
