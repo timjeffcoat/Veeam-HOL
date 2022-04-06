@@ -29,21 +29,22 @@ if [ -d "/minio-dir/mnt" ]
 then
 	echo "Found directories"
 else
-	mkdir /minio-dir /minio-dir/mnt /minio-dir/mnt/disk_sd{b,c,d,e} 
+	fdisk -l | grep 'Disk /dev/sd'
+
+	echo "Found these drives, which do you want to use?"
+	read -p "List drives separated by a space: " -i "sda sdb sdc sdd" -e disk1 disk2 disk3 disk4 
+
+	read -p "Using drives: $disk1 $disk2 $disk3 $disk4. Proceed? y/n: " -i "y" -e carryon
+
+	if [ ${carryon,,} != 'y' ]
+	then
+	exit
+	fi
+	
+	mkdir /minio-dir /minio-dir/mnt /minio-dir/mnt/disk_{1,2,3,4} 
 	chown -R minio-user:minio-user /minio-dir 
 	echo "Directories created"
-fi
-
-fdisk -l | grep 'Disk /dev/sd'
-
-echo "Found these drives, which do you want to use?"
-read -p "List drives separated by a space: " -i "sda sdb sdc sdd" -e disk1 disk2 disk3 disk4 
-
-read -p "Using drives: $disk1 $disk2 $disk3 $disk4. Proceed? y/n: " -i "y" -e carryon
-
-if [ ${carryon,,} != 'y' ]
-then
-exit
+	
 fi
 
 
@@ -55,30 +56,30 @@ then
 echo "Looks like disks need partitions - creating"
 echo "start=2048, type=83" >> /minio-dir/partition_template_sfdisk
 
-sfdisk  /dev/sdb < /minio-dir/partition_template_sfdisk
+sfdisk  /dev/$disk1 < /minio-dir/partition_template_sfdisk
 sleep 1
-mkfs.ext4 /dev/sdb1
-sleep 1
-
-sfdisk  /dev/sdc < /minio-dir/partition_template_sfdisk
-sleep 1
-mkfs.ext4 /dev/sdc1
+mkfs.ext4 /dev/$disk11
 sleep 1
 
-sfdisk  /dev/sdd < /minio-dir/partition_template_sfdisk
+sfdisk  /dev/$disk2 < /minio-dir/partition_template_sfdisk
 sleep 1
-mkfs.ext4 /dev/sdd1
-sleep 1
-
-sfdisk  /dev/sde < /minio-dir/partition_template_sfdisk
-sleep 1
-mkfs.ext4 /dev/sde1
+mkfs.ext4 /dev/$disk21
 sleep 1
 
-echo "UUID=`blkid -s UUID -o value /dev/sdb1` /minio-dir/mnt/disk_sdb ext4 defaults 0 1" >> /minio-dir/fstab.append
-echo "UUID=`blkid -s UUID -o value /dev/sdc1` /minio-dir/mnt/disk_sdc ext4 defaults 0 1" >> /minio-dir/fstab.append
-echo "UUID=`blkid -s UUID -o value /dev/sdd1` /minio-dir/mnt/disk_sdd ext4 defaults 0 1" >> /minio-dir/fstab.append
-echo "UUID=`blkid -s UUID -o value /dev/sde1` /minio-dir/mnt/disk_sde ext4 defaults 0 1" >> /minio-dir/fstab.append
+sfdisk  /dev/$disk3 < /minio-dir/partition_template_sfdisk
+sleep 1
+mkfs.ext4 /dev/$disk31
+sleep 1
+
+sfdisk  /dev/$disk4 < /minio-dir/partition_template_sfdisk
+sleep 1
+mkfs.ext4 /dev/$disk41
+sleep 1
+
+echo "UUID=`blkid -s UUID -o value /dev/$disk11` /minio-dir/mnt/disk_disk1 ext4 defaults 0 1" >> /minio-dir/fstab.append
+echo "UUID=`blkid -s UUID -o value /dev/$disk21` /minio-dir/mnt/disk_disk2 ext4 defaults 0 1" >> /minio-dir/fstab.append
+echo "UUID=`blkid -s UUID -o value /dev/$disk31` /minio-dir/mnt/disk_disk3 ext4 defaults 0 1" >> /minio-dir/fstab.append
+echo "UUID=`blkid -s UUID -o value /dev/$disk41` /minio-dir/mnt/disk_disk4 ext4 defaults 0 1" >> /minio-dir/fstab.append
 
 cat /minio-dir/fstab.append >> /etc/fstab
 
