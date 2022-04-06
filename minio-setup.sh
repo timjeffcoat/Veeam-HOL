@@ -50,7 +50,7 @@ fi
 
 temp=$(grep -c 'sdb[0-9]' /proc/partitions)
 
-if [ ${temp} = 0 ]
+if [ ${temp} > 1 ]
 then
 
 echo "Looks like disks need partitions - creating"
