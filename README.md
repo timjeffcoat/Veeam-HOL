@@ -52,6 +52,6 @@ All other options:	`default`
 After the install has finished and the server has completed it's initial post-install boot:
 * SSH onto the server using the 'veeam' admin user account.  
 * Run the following command to download and execute the script:  
-`curl -sS https://raw.githubusercontent.com/timjeffcoat/Veeam-Test-Drive/main/minio-setup.sh | sudo bash`  
+`curl -S https://raw.githubusercontent.com/timjeffcoat/Veeam-Test-Drive/main/minio-setup.sh | sudo bash`  
   
 Sudo will prompt for the `admin user` password, after which the script task outputs will be shown as the script runs.  
