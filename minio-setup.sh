@@ -15,6 +15,7 @@
 
 
 temp=$(cut -d: -f1 /etc/passwd | grep -i minio)
+hostname=$(hostname)
 
 if [ ! ${#temp} = 0 ]
 then
@@ -99,7 +100,7 @@ else
 fi
 
 
-temp=$(mc alias list | grep -i tdtv)
+temp=$(mc alias list | grep -i $hostname)
 
 if [ ! ${#temp} = 0 ]
 then
@@ -107,7 +108,7 @@ then
 else
 
 	echo "Adding alias to MinIO Config Tool"
-	mc config host add tdtv-s3o-01 https://tdtv-s3o-01 minio minio-storage --api S3v4
+	mc config host add $hostname https://$hostname minio minio-storage --api S3v4
 fi
 
 if [ -f "/minio-dir/openssl.conf" ] 
@@ -137,7 +138,7 @@ CN = Veeam-MinIO-CN
 subjectAltName = @alt_names 
 
 [alt_names] 
-DNS.1 = tdtv-s3o-01 
+DNS.1 = $hostname
 EOL
 
 	temp=$(ip a s|sed -ne '/127.0.0.1/!{s/^[ \t]*inet[ \t]*\([0-9.]\+\)\/.*$/\1/p}')
@@ -245,32 +246,32 @@ else
 fi
 
 
-temp="$(mc admin info tdtv-s3o-01)"
+temp="$(mc admin info $hostname)"
 
 if [ ${#temp} = 0 ]
 then
 	echo "Unable to check Bucket - MinIO server offline"
 else
-	temp=$(mc ls tdtv-s3o-01)
+	temp=$(mc ls $hostname)
 
 	if [ ! ${#temp} = 0 ]
 	then
         	echo "Bucket exists"
 	else	
 		echo "Adding  bucket"
-       		mc mb --debug -l tdtv-s3o-01/bucket-immutable
+       		mc mb --debug -l $hostname/bucket-immutable
 	fi
 fi
 
 
-temp="$(mc admin info tdtv-s3o-01)"
+temp="$(mc admin info $hostname)"
 
 if [ ${#temp} = 0 ]
 then
         echo "Unable to check Users - MinIO server offline"
 else
 
-	temp=$(mc admin user list tdtv-s3o-01 | grep -i VBOLABACCKEY)
+	temp=$(mc admin user list $hostname | grep -i VBOLABACCKEY)
 
 	if [ ! ${#temp} = 0 ]
 	then
@@ -281,9 +282,9 @@ else
 
         	echo "Veeam123456!" | mc admin user add tdtv-s3o-01 veeam
         	echo "VBOLABSECKEY" | mc admin user add tdtv-s3o-01 VBOLABACCKEY
-        	# mc admin user list tdtv-s3o-01
-        	mc admin policy set tdtv-s3o-01 readwrite user=VBOLABACCKEY
-        	mc admin policy set tdtv-s3o-01 readonly user=veeam
+        	# mc admin user list $hostname
+        	mc admin policy set $hostname readwrite user=VBOLABACCKEY
+        	mc admin policy set $hostname readonly user=veeam
 	fi
 fi
 echo "End of script"
