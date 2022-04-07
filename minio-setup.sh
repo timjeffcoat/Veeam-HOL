@@ -76,10 +76,10 @@ sleep 1
 mkfs.ext4 /dev/$disk41
 sleep 1
 
-echo "UUID=`blkid -s UUID -o value /dev/$disk11` /minio-dir/mnt/disk_disk1 ext4 defaults 0 1" >> /minio-dir/fstab.append
-echo "UUID=`blkid -s UUID -o value /dev/$disk21` /minio-dir/mnt/disk_disk2 ext4 defaults 0 1" >> /minio-dir/fstab.append
-echo "UUID=`blkid -s UUID -o value /dev/$disk31` /minio-dir/mnt/disk_disk3 ext4 defaults 0 1" >> /minio-dir/fstab.append
-echo "UUID=`blkid -s UUID -o value /dev/$disk41` /minio-dir/mnt/disk_disk4 ext4 defaults 0 1" >> /minio-dir/fstab.append
+echo "UUID=`blkid -s UUID -o value /dev/$disk11` /minio-dir/mnt/disk1 ext4 defaults 0 1" >> /minio-dir/fstab.append
+echo "UUID=`blkid -s UUID -o value /dev/$disk21` /minio-dir/mnt/disk2 ext4 defaults 0 1" >> /minio-dir/fstab.append
+echo "UUID=`blkid -s UUID -o value /dev/$disk31` /minio-dir/mnt/disk3 ext4 defaults 0 1" >> /minio-dir/fstab.append
+echo "UUID=`blkid -s UUID -o value /dev/$disk41` /minio-dir/mnt/disk4 ext4 defaults 0 1" >> /minio-dir/fstab.append
 
 cat /minio-dir/fstab.append >> /etc/fstab
 
