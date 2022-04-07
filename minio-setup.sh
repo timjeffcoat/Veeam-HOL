@@ -299,8 +299,8 @@ else
 
         	echo "Adding MinIO Users"
 
-        	echo "Veeam123456!" | mc admin user add tdtv-s3o-01 veeam
-        	echo "VBOLABSECKEY" | mc admin user add tdtv-s3o-01 VBOLABACCKEY
+        	echo "Veeam123456!" | mc admin user add $hostname veeam
+        	echo "VBOLABSECKEY" | mc admin user add $hostname VBOLABACCKEY
         	# mc admin user list $hostname
         	mc admin policy set $hostname readwrite user=VBOLABACCKEY
         	mc admin policy set $hostname readonly user=veeam
