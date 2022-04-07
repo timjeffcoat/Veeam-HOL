@@ -58,22 +58,22 @@ echo "start=2048, type=83" >> /minio-dir/partition_template_sfdisk
 
 sfdisk  /dev/$disk1 < /minio-dir/partition_template_sfdisk
 sleep 1
-mkfs.ext4 /dev/$disk11
+mkfs.ext4 /dev/${disk1}1
 sleep 1
 
 sfdisk  /dev/$disk2 < /minio-dir/partition_template_sfdisk
 sleep 1
-mkfs.ext4 /dev/$disk21
+mkfs.ext4 /dev/${disk2}1
 sleep 1
 
 sfdisk  /dev/$disk3 < /minio-dir/partition_template_sfdisk
 sleep 1
-mkfs.ext4 /dev/$disk31
+mkfs.ext4 /dev/${disk3}1
 sleep 1
 
 sfdisk  /dev/$disk4 < /minio-dir/partition_template_sfdisk
 sleep 1
-mkfs.ext4 /dev/$disk41
+mkfs.ext4 /dev/${disk4}1
 sleep 1
 
 disk1=$(blkid -s UUID -o value /dev/${disk1}1)
