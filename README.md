@@ -37,7 +37,7 @@ Ubuntu 20.04 Server ISO can be downloaded [here](https://releases.ubuntu.com/20.
 
 ### Step 2) Install Linux
 Boot the VM into the Ubuntu 20.04 Server ISO, and follow the install wizard.  
-Server name:		`s3-ovbject`  
+Server name:		`s3-object`  
 Username: 		`Enter the agreed HOL admin username`  
 Password: 		`Enter the agreed HOL admin password`    
 Install SSH Server:	`yes`  
