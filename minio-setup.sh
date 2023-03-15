@@ -1,18 +1,21 @@
-#!/bin/bash 
+#!/bin/bash
 
 # This script sets up MinIO as per the specifications for the Test Drive To Veeam lab environment.
 # It will:
-# 	1) Create configuration directories and mountpoints.
-# 	2) Download MinIO and MC binaries from the MinIO website.
-# 	3) Generate an SSL config file and use it to create a self-signed SSL private key and certificate.
-#	4) Start the MinIO server, and create a bucket with object lock enabled
-#	5) Create config files necessary for MinIO to run as a systemd service on boot.
+#       1) Create configuration directories and mountpoints.
+#       2) Download MinIO and MC binaries from the MinIO website.
+#       3) Generate an SSL config file and use it to create a self-signed SSL private key and certificate.
+#       4) Start the MinIO server, and create a bucket with object lock enabled
+#       5) Create config files necessary for MinIO to run as a systemd service on boot.
 #
 # This script only performs redimentary checks, and has NOT been through much/any testing.
 # Use at your own risk!
 # Cobbled together by tim.jeffcoat@veeam.com on 17 July 2021
+# Updated in Dec 2022 and again a bit in Jan 2022
 # Please don't judge me for my so-called code: bash (and coding in general) is not my strength...
 
+RED=`tput setaf 1`
+NORMAL=`tput sgr0`
 
 temp=$(cut -d: -f1 /etc/passwd | grep -i minio)
 hostname=$(hostname)
@@ -21,97 +24,58 @@ if [ ! ${#temp} = 0 ]
 then
         echo "minio-user exists"
 else
-	echo "Adding minio-user"
-	useradd -r minio-user -s /sbin/nologin
+        echo "Adding minio-user"
+        useradd -r minio-user -s /sbin/nologin
 fi
 
-if [ -d "/minio-dir/mnt" ] 
+if [ -d "/minio-dir/mnt" ]
 then
-	echo "Found directories"
+        echo "Found minio base directory"
 else
-	fdisk -l | grep 'Disk /dev/sd'
-
-	echo "Found these drives, which do you want to use?"
-	read -p "List drives separated by a space: " -i "sda sdb sdc sdd" -e disk1 disk2 disk3 disk4 
-
-	read -p "Using drives: $disk1 $disk2 $disk3 $disk4. Proceed? y/n: " -i "y" -e carryon
-
-	if [ ${carryon,,} != 'y' ]
-	then
-	exit
-	fi
-	
-	mkdir /minio-dir /minio-dir/mnt /minio-dir/mnt/disk_{1,2,3,4} 
-	chown -R minio-user:minio-user /minio-dir 
-	echo "Directories created"
-	
+        mkdir /minio-dir /minio-dir/mnt
+        chown -R minio-user:minio-user /minio-dir
+        echo "Directories created"
 fi
 
 
-temp=$(grep -c 'sdb[0-9]' /proc/partitions)
-
-if [ ${temp} > 1 ]
+if [ -d "/minio-dir/mnt/disk_1" ]
 then
-
-echo "Looks like disks need partitions - creating"
-echo "start=2048, type=83" >> /minio-dir/partition_template_sfdisk
-
-sfdisk  /dev/$disk1 < /minio-dir/partition_template_sfdisk
-sleep 1
-mkfs.ext4 /dev/${disk1}1
-sleep 1
-
-sfdisk  /dev/$disk2 < /minio-dir/partition_template_sfdisk
-sleep 1
-mkfs.ext4 /dev/${disk2}1
-sleep 1
-
-sfdisk  /dev/$disk3 < /minio-dir/partition_template_sfdisk
-sleep 1
-mkfs.ext4 /dev/${disk3}1
-sleep 1
-
-sfdisk  /dev/$disk4 < /minio-dir/partition_template_sfdisk
-sleep 1
-mkfs.ext4 /dev/${disk4}1
-sleep 1
-
-disk1=$(blkid -s UUID -o value /dev/${disk1}1)
-disk2=$(blkid -s UUID -o value /dev/${disk2}1)
-disk3=$(blkid -s UUID -o value /dev/${disk3}1)
-disk4=$(blkid -s UUID -o value /dev/${disk4}1)
-
-echo "UUID=${disk1} /minio-dir/mnt/disk_1 ext4 defaults 0 1" >> /minio-dir/fstab.append
-echo "UUID=${disk2} /minio-dir/mnt/disk_2 ext4 defaults 0 1" >> /minio-dir/fstab.append
-echo "UUID=${disk3} /minio-dir/mnt/disk_3 ext4 defaults 0 1" >> /minio-dir/fstab.append
-echo "UUID=${disk4} /minio-dir/mnt/disk_4 ext4 defaults 0 1" >> /minio-dir/fstab.append
-
-cat /minio-dir/fstab.append >> /etc/fstab
-
-rm /minio-dir/fstab.append
-rm /minio-dir/partition_template_sfdisk
-
-mount -a
+        echo "Found minio storage directories"
 else
-	echo "Disk partitions look OK"
+        temp=$(mount | grep -i /minio-dir)
+
+        if [ ! ${#temp} = 0 ]
+        then
+                echo "partition mounted to /minio-dir/mnt"
+
+                mkdir /minio-dir/mnt/disk_{1,2,3,4}
+                chown -R minio-user:minio-user /minio-dir
+                cho "Data Directories created"
+        else
+                echo -e "${RED}Please mount an XFS partition (other than that containing the kernel) to /minio-dir/mnt, and then re-run this script${NORMAL}"
+                echo -e "${RED}This disrectory will be used to simulate the 4 volumes MinIO requires for erasure coding (and therefore S3 Object lock)${NORMAL}"
+                echo -e "${RED}Don't forget to add the volume to fstab so that it's mounted at startup!${NORMAL}"
+
+                exit
+        fi
 fi
 
 
-if [ -f "/usr/local/bin/minio" ] 
+if [ -f "/usr/local/bin/minio" ]
 then
-	echo "Found minio binaries"
+        echo "Found minio binaries"
 else
-	cd /minio-dir/
-	echo "Downloading minio binaries"
-	wget https://dl.min.io/server/minio/release/linux-amd64/minio 
-	wget https://dl.min.io/client/mc/release/linux-amd64/mc 
-	chmod +x minio mc
+        cd /minio-dir/
+        echo "Downloading minio binaries"
+        wget https://dl.min.io/server/minio/release/linux-amd64/minio
+        wget https://dl.min.io/client/mc/release/linux-amd64/mc
+        chmod +x minio mc
 
-	echo "Downloaded binaries, moving to /usr/local/bin/"
-	mv minio /usr/local/bin/minio
-	mv mc /usr/local/bin/mc
-	chown minio-user:minio-user  /usr/local/bin/minio
-	chown minio-user:minio-user  /usr/local/bin/mc
+        echo "Downloaded binaries, moving to /usr/local/bin/"
+        mv minio /usr/local/bin/minio
+        mv mc /usr/local/bin/mc
+        chown minio-user:minio-user  /usr/local/bin/minio
+        chown minio-user:minio-user  /usr/local/bin/mc
 
 #screen -dmS minio-screen minio server --address :443 /minio-dir/mnt/disk_sd{b,c,d,e}
 #screen -S minio-screen -X quit
@@ -126,63 +90,63 @@ then
         echo "mc alias exists"
 else
 
-	echo "Adding alias to MinIO Config Tool"
-	mc config host add $hostname https://$hostname minio minio-storage --api S3v4
+        echo "Adding alias to MinIO Config Tool"
+        mc config host add $hostname https://$hostname minio minio-storage --api S3v4
 fi
 
-if [ -f "/minio-dir/openssl.conf" ] 
+if [ -f "/minio-dir/openssl.conf" ]
 then
-	echo "Found openssl.conf"
+        echo "Found openssl.conf"
 else
-	echo "Creating openssl.conf"
-	mkdir /etc/minio /etc/minio/certs /etc/minio/certs/CAs
-	cd /minio-dir/
-	touch openssl.conf
+        echo "Creating openssl.conf"
+        mkdir /etc/minio /etc/minio/certs /etc/minio/certs/CAs
+        cd /minio-dir/
+        touch openssl.conf
 
-	cat > openssl.conf << EOL
+        cat > openssl.conf << EOL
 [req]
-distinguished_name = req_distinguished_name 
-x509_extensions = v3_req 
-prompt = no 
+distinguished_name = req_distinguished_name
+x509_extensions = v3_req
+prompt = no
 
-[req_distinguished_name] 
-C = VM 
-ST = VM 
-L = VM 
-O = Veeam-MinIO-O 
-OU = Veeam-MinIO-OU 
-CN = Veeam-MinIO-CN 
+[req_distinguished_name]
+C = VM
+ST = VM
+L = VM
+O = Veeam-MinIO-O
+OU = Veeam-MinIO-OU
+CN = Veeam-MinIO-CN
 
-[v3_req] 
-subjectAltName = @alt_names 
+[v3_req]
+subjectAltName = @alt_names
 
-[alt_names] 
+[alt_names]
 DNS.1 = $hostname
 EOL
 
-	temp=$(ip a s|sed -ne '/127.0.0.1/!{s/^[ \t]*inet[ \t]*\([0-9.]\+\)\/.*$/\1/p}')
+        temp=$(ip a s|sed -ne '/127.0.0.1/!{s/^[ \t]*inet[ \t]*\([0-9.]\+\)\/.*$/\1/p}')
 
-	echo "IP.1 = $temp" >> openssl.conf
+        echo "IP.1 = $temp" >> openssl.conf
 
-	echo "Created openssl.conf, generating certificate and private key"
+        echo "Created openssl.conf, generating certificate and private key"
 
-	openssl genrsa -out /etc/minio/certs/private.key 2048
-	openssl req -new -x509 -nodes -days 730 -key /etc/minio/certs/private.key -out /etc/minio/certs/public.crt -config /minio-dir/openssl.conf
-	echo "Created cert and key"
-#	chown -R minio-user:minio-user  /etc/minio/certs
+        openssl genrsa -out /etc/minio/certs/private.key 2048
+        openssl req -new -x509 -nodes -days 730 -key /etc/minio/certs/private.key -out /etc/minio/certs/public.crt -config /minio-dir/openssl.conf
+        echo "Created cert and key"
+#       chown -R minio-user:minio-user  /etc/minio/certs
 # fi
 
-# if [ -f "/root/.mc/certs/CAs/public.crt" ] 
+# if [ -f "/root/.mc/certs/CAs/public.crt" ]
 # then
 #         echo "Certs in correct locations"
 # else
-	cp /etc/minio/certs/public.crt /root/.mc/certs/CAs/public.crt
-	cp /etc/minio/certs/private.key /root/.mc/certs/private.key
-#	chown minio-user:minio-user /root/.mc/certs/*
-	echo "Copied certs to necessary locations"
+        cp /etc/minio/certs/public.crt /root/.mc/certs/CAs/public.crt
+        cp /etc/minio/certs/private.key /root/.mc/certs/private.key
+#       chown minio-user:minio-user /root/.mc/certs/*
+        echo "Copied certs to necessary locations"
 fi
 
-if [ -f "/etc/default/minio" ] 
+if [ -f "/etc/default/minio" ]
 then
         echo "Found service config files"
 else
@@ -197,7 +161,7 @@ MINIO_ROOT_USER="minio"
 MINIO_ROOT_PASSWORD="minio-storage"
 EOL
 
-#	chown minio-user:minio-user  /etc/default/minio
+#       chown minio-user:minio-user  /etc/default/minio
 
 # curl -O https://raw.githubusercontent.com/minio/minio-service/master/linux-systemd/minio.service
 # mv minio.service /etc/systemd/system/minio.service
@@ -269,17 +233,17 @@ temp="$(mc admin info $hostname)"
 
 if [ ${#temp} = 0 ]
 then
-	echo "Unable to check Bucket - MinIO server offline"
+        echo "Unable to check Bucket - MinIO server offline"
 else
-	temp=$(mc ls $hostname)
+        temp=$(mc ls $hostname)
 
-	if [ ! ${#temp} = 0 ]
-	then
-        	echo "Bucket exists"
-	else	
-		echo "Adding  bucket"
-       		mc mb --debug -l $hostname/bucket-immutable
-	fi
+        if [ ! ${#temp} = 0 ]
+        then
+                echo "Bucket exists"
+        else
+                echo "Adding  bucket"
+                mc mb --debug -l $hostname/bucket-immutable
+        fi
 fi
 
 
@@ -290,20 +254,20 @@ then
         echo "Unable to check Users - MinIO server offline"
 else
 
-	temp=$(mc admin user list $hostname | grep -i VBOLABACCKEY)
+        temp=$(mc admin user list $hostname | grep -i VBOLABACCKEY)
 
-	if [ ! ${#temp} = 0 ]
-	then
-        	echo "Users exist"
-	else
+        if [ ! ${#temp} = 0 ]
+        then
+                echo "Users exist"
+        else
 
-        	echo "Adding MinIO Users"
+                echo "Adding MinIO Users"
 
-        	echo "Veeam123456!" | mc admin user add $hostname veeam
-        	echo "VBOLABSECKEY" | mc admin user add $hostname VBOLABACCKEY
-        	# mc admin user list $hostname
-        	mc admin policy set $hostname readwrite user=VBOLABACCKEY
-        	mc admin policy set $hostname readonly user=veeam
-	fi
+                echo "Veeam123456!" | mc admin user add $hostname veeam
+                echo "VEEAM-HOL-SECRET-KEY" | mc admin user add $hostname VEEAM-HOL-ACCESS-KEY
+                # mc admin user list $hostname
+                mc admin policy set $hostname readwrite user=VEEAM-HOL-ACCESS-KEY
+                mc admin policy set $hostname readonly user=veeam
+        fi
 fi
 echo "End of script"
